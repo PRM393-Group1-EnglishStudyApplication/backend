@@ -1,0 +1,301 @@
+// Prisma schema - MySQL
+// Cac bang theo WBS task 1.0: Users, Courses, Lessons, Vocabulary, Quizzes, Progress, Achievements
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// USER & PROFILE  (WBS 2.0, 2.2)
+// ============================================================
+
+enum Role {
+  GUEST
+  LEARNER
+  ADMIN
+}
+
+enum LearningGoal {
+  CASUAL // 5 phut/ngay
+  REGULAR // 15 phut/ngay
+  SERIOUS // 30 phut/ngay
+  INTENSE // 60 phut/ngay
+}
+
+enum Level {
+  BEGINNER
+  ELEMENTARY
+  INTERMEDIATE
+  UPPER_INTERMEDIATE
+  ADVANCED
+}
+
+model User {
+  id           String        @id @default(cuid())
+  // ID nguoi dung tu Clerk (sub trong JWT). Dung de map Clerk <-> DB.
+  clerkUserId  String        @unique
+  email        String        @unique
+  username     String?       @unique
+  fullName     String?
+  avatarUrl    String?       @db.Text
+  role         Role          @default(LEARNER)
+  level        Level?
+  learningGoal LearningGoal?
+  hearts       Int           @default(5) // so "Tim" (luot choi) - WBS 4.2
+  xp           Int           @default(0)
+  streak       Int           @default(0)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  progress         Progress[]
+  quizAttempts     QuizAttempt[]
+  userAchievements UserAchievement[]
+  placementResults PlacementResult[]
+  notifications    Notification[]
+
+  @@index([clerkUserId])
+  @@map("users")
+}
+
+// ============================================================
+// COURSE & LESSON  (WBS 3.0, 4.1)
+// ============================================================
+
+model Course {
+  id          String   @id @default(cuid())
+  title       String
+  description String?  @db.Text
+  level       Level
+  topic       String?
+  thumbnailUrl String? @db.Text
+  orderIndex  Int      @default(0)
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  lessons Lesson[]
+
+  @@index([level])
+  @@map("courses")
+}
+
+model Lesson {
+  id          String   @id @default(cuid())
+  courseId    String
+  title       String
+  content     String?  @db.Text
+  orderIndex  Int      @default(0)
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  course      Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  vocabulary  Vocabulary[]
+  exercises   Exercise[]
+  quizzes     Quiz[]
+  progress    Progress[]
+
+  @@index([courseId])
+  @@map("lessons")
+}
+
+// ============================================================
+// VOCABULARY & MEDIA / EXERCISES  (WBS 3.1)
+// ============================================================
+
+model Vocabulary {
+  id          String   @id @default(cuid())
+  lessonId    String
+  word        String
+  meaning     String
+  phonetic    String?
+  example     String?  @db.Text
+  imageUrl    String?  @db.Text
+  audioUrl    String?  @db.Text // file audio phat am - WBS 3.1
+  createdAt   DateTime @default(now())
+
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@index([lessonId])
+  @@map("vocabulary")
+}
+
+enum ExerciseType {
+  FLASHCARD
+  LISTENING
+  READING
+  GRAMMAR
+}
+
+model Exercise {
+  id        String       @id @default(cuid())
+  lessonId  String
+  type      ExerciseType
+  title     String
+  payload   Json // noi dung bai tap (cau hoi, dap an, media url...)
+  mediaUrl  String?      @db.Text
+  createdAt DateTime     @default(now())
+
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@index([lessonId])
+  @@map("exercises")
+}
+
+// ============================================================
+// QUIZ  (WBS 3.1, 4.2)
+// ============================================================
+
+model Quiz {
+  id          String   @id @default(cuid())
+  lessonId    String?
+  title       String
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+
+  lesson    Lesson?       @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+  questions Question[]
+  attempts  QuizAttempt[]
+
+  @@map("quizzes")
+}
+
+enum QuestionType {
+  SINGLE_CHOICE
+  MULTIPLE_CHOICE
+  FILL_BLANK
+  MATCHING
+}
+
+model Question {
+  id           String       @id @default(cuid())
+  quizId       String
+  type         QuestionType @default(SINGLE_CHOICE)
+  content      String       @db.Text
+  options      Json // danh sach lua chon
+  correctAnswer Json // dap an dung
+  explanation  String?      @db.Text // giai thich - WBS 4.2
+  points       Int          @default(10)
+  orderIndex   Int          @default(0)
+
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@index([quizId])
+  @@map("questions")
+}
+
+model QuizAttempt {
+  id          String   @id @default(cuid())
+  userId      String
+  quizId      String
+  score       Int      @default(0)
+  totalPoints Int      @default(0)
+  answers     Json // dap an user da chon
+  completedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([quizId])
+  @@map("quiz_attempts")
+}
+
+// ============================================================
+// PLACEMENT TEST  (WBS 4)
+// ============================================================
+
+model PlacementResult {
+  id            String   @id @default(cuid())
+  userId        String
+  score         Int
+  suggestedLevel Level
+  takenAt       DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("placement_results")
+}
+
+// ============================================================
+// PROGRESS  (WBS 5.0)
+// ============================================================
+
+enum ProgressStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+model Progress {
+  id          String         @id @default(cuid())
+  userId      String
+  lessonId    String
+  status      ProgressStatus @default(NOT_STARTED)
+  completionRate Float       @default(0) // %
+  timeSpentSec Int           @default(0) // thoi gian hoc (giay)
+  lastStudiedAt DateTime     @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  @@index([userId])
+  @@map("progress")
+}
+
+// ============================================================
+// ACHIEVEMENT & LEADERBOARD  (WBS 5.1)
+// ============================================================
+
+model Achievement {
+  id          String   @id @default(cuid())
+  code        String   @unique // vd: FIRST_LESSON, STREAK_7
+  name        String
+  description String?
+  iconUrl     String?  @db.Text
+  condition   Json // dieu kien mo khoa (vd: { type: "streak", value: 7 })
+
+  userAchievements UserAchievement[]
+
+  @@map("achievements")
+}
+
+model UserAchievement {
+  id            String   @id @default(cuid())
+  userId        String
+  achievementId String
+  unlockedAt    DateTime @default(now())
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+  @@map("user_achievements")
+}
+
+// ============================================================
+// NOTIFICATION / REMINDER  (WBS 6.1)
+// ============================================================
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  body      String   @db.Text
+  isRead    Boolean  @default(false)
+  scheduledAt DateTime?
+  sentAt    DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("notifications")
+}
