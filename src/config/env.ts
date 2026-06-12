@@ -16,11 +16,10 @@ export const env = {
   isProd: process.env.NODE_ENV === 'production',
 
   databaseUrl: required('DATABASE_URL'),
-
   clerk: {
     publishableKey: required('CLERK_PUBLISHABLE_KEY'),
     secretKey: required('CLERK_SECRET_KEY'),
-    webhookSigningSecret: process.env.CLERK_WEBHOOK_SIGNING_SECRET || '',
+    webhookSigningSecret: required('CLERK_WEBHOOK_SIGNING_SECRET'),
   },
 
   corsOrigin: process.env.CORS_ORIGIN || '*',
