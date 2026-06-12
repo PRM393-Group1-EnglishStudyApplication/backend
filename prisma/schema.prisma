@@ -1,12 +1,12 @@
-// Prisma schema - MySQL
-// Cac bang theo WBS task 1.0: Users, Courses, Lessons, Vocabulary, Quizzes, Progress, Achievements
+// Prisma schema - MongoDB
+// Cac collection theo WBS task 1.0: Users, Courses, Lessons, Vocabulary, Quizzes, Progress, Achievements
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
@@ -36,13 +36,13 @@ enum Level {
 }
 
 model User {
-  id           String        @id @default(cuid())
+  id           String        @id @default(auto()) @map("_id") @db.ObjectId
   // ID nguoi dung tu Clerk (sub trong JWT). Dung de map Clerk <-> DB.
   clerkUserId  String        @unique
   email        String        @unique
   username     String?       @unique
   fullName     String?
-  avatarUrl    String?       @db.Text
+  avatarUrl    String?
   role         Role          @default(LEARNER)
   level        Level?
   learningGoal LearningGoal?
@@ -58,7 +58,6 @@ model User {
   placementResults PlacementResult[]
   notifications    Notification[]
 
-  @@index([clerkUserId])
   @@map("users")
 }
 
@@ -67,12 +66,12 @@ model User {
 // ============================================================
 
 model Course {
-  id          String   @id @default(cuid())
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   title       String
-  description String?  @db.Text
+  description String?
   level       Level
   topic       String?
-  thumbnailUrl String? @db.Text
+  thumbnailUrl String?
   orderIndex  Int      @default(0)
   isPublished Boolean  @default(false)
   createdAt   DateTime @default(now())
@@ -85,10 +84,10 @@ model Course {
 }
 
 model Lesson {
-  id          String   @id @default(cuid())
-  courseId    String
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  courseId    String   @db.ObjectId
   title       String
-  content     String?  @db.Text
+  content     String?
   orderIndex  Int      @default(0)
   isPublished Boolean  @default(false)
   createdAt   DateTime @default(now())
@@ -109,14 +108,14 @@ model Lesson {
 // ============================================================
 
 model Vocabulary {
-  id          String   @id @default(cuid())
-  lessonId    String
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  lessonId    String   @db.ObjectId
   word        String
   meaning     String
   phonetic    String?
-  example     String?  @db.Text
-  imageUrl    String?  @db.Text
-  audioUrl    String?  @db.Text // file audio phat am - WBS 3.1
+  example     String?
+  imageUrl    String?
+  audioUrl    String? // file audio phat am - WBS 3.1
   createdAt   DateTime @default(now())
 
   lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
@@ -133,12 +132,12 @@ enum ExerciseType {
 }
 
 model Exercise {
-  id        String       @id @default(cuid())
-  lessonId  String
+  id        String       @id @default(auto()) @map("_id") @db.ObjectId
+  lessonId  String       @db.ObjectId
   type      ExerciseType
   title     String
   payload   Json // noi dung bai tap (cau hoi, dap an, media url...)
-  mediaUrl  String?      @db.Text
+  mediaUrl  String?
   createdAt DateTime     @default(now())
 
   lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
@@ -152,10 +151,10 @@ model Exercise {
 // ============================================================
 
 model Quiz {
-  id          String   @id @default(cuid())
-  lessonId    String?
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  lessonId    String?  @db.ObjectId
   title       String
-  description String?  @db.Text
+  description String?
   createdAt   DateTime @default(now())
 
   lesson    Lesson?       @relation(fields: [lessonId], references: [id], onDelete: SetNull)
@@ -173,13 +172,13 @@ enum QuestionType {
 }
 
 model Question {
-  id           String       @id @default(cuid())
-  quizId       String
+  id           String       @id @default(auto()) @map("_id") @db.ObjectId
+  quizId       String       @db.ObjectId
   type         QuestionType @default(SINGLE_CHOICE)
-  content      String       @db.Text
+  content      String
   options      Json // danh sach lua chon
   correctAnswer Json // dap an dung
-  explanation  String?      @db.Text // giai thich - WBS 4.2
+  explanation  String? // giai thich - WBS 4.2
   points       Int          @default(10)
   orderIndex   Int          @default(0)
 
@@ -190,9 +189,9 @@ model Question {
 }
 
 model QuizAttempt {
-  id          String   @id @default(cuid())
-  userId      String
-  quizId      String
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  quizId      String   @db.ObjectId
   score       Int      @default(0)
   totalPoints Int      @default(0)
   answers     Json // dap an user da chon
@@ -211,8 +210,8 @@ model QuizAttempt {
 // ============================================================
 
 model PlacementResult {
-  id            String   @id @default(cuid())
-  userId        String
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String   @db.ObjectId
   score         Int
   suggestedLevel Level
   takenAt       DateTime @default(now())
@@ -234,9 +233,9 @@ enum ProgressStatus {
 }
 
 model Progress {
-  id          String         @id @default(cuid())
-  userId      String
-  lessonId    String
+  id          String         @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String         @db.ObjectId
+  lessonId    String         @db.ObjectId
   status      ProgressStatus @default(NOT_STARTED)
   completionRate Float       @default(0) // %
   timeSpentSec Int           @default(0) // thoi gian hoc (giay)
@@ -255,11 +254,11 @@ model Progress {
 // ============================================================
 
 model Achievement {
-  id          String   @id @default(cuid())
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   code        String   @unique // vd: FIRST_LESSON, STREAK_7
   name        String
   description String?
-  iconUrl     String?  @db.Text
+  iconUrl     String?
   condition   Json // dieu kien mo khoa (vd: { type: "streak", value: 7 })
 
   userAchievements UserAchievement[]
@@ -268,9 +267,9 @@ model Achievement {
 }
 
 model UserAchievement {
-  id            String   @id @default(cuid())
-  userId        String
-  achievementId String
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String   @db.ObjectId
+  achievementId String   @db.ObjectId
   unlockedAt    DateTime @default(now())
 
   user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -285,10 +284,10 @@ model UserAchievement {
 // ============================================================
 
 model Notification {
-  id        String   @id @default(cuid())
-  userId    String
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
   title     String
-  body      String   @db.Text
+  body      String
   isRead    Boolean  @default(false)
   scheduledAt DateTime?
   sentAt    DateTime?

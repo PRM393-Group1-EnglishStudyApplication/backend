@@ -1,7 +1,7 @@
 {
   "name": "elearning-backend",
   "version": "1.0.0",
-  "description": "Monolithic backend cho ung dung hoc tieng Anh (PRM393) - Express + MySQL (Prisma) + Clerk",
+  "description": "Monolithic backend cho ung dung hoc tieng Anh (PRM393) - Express + MongoDB (Prisma) + Clerk",
   "main": "dist/server.js",
   "type": "module",
   "scripts": {
@@ -10,7 +10,7 @@
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
+    "prisma:push": "prisma db push",
     "prisma:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
     "lint": "eslint .",
@@ -19,7 +19,7 @@
   "keywords": [
     "express",
     "prisma",
-    "mysql",
+    "mongodb",
     "clerk",
     "elearning"
   ],
