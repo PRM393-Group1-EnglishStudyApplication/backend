@@ -1,6 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
-import { Prisma } from '@prisma/client';
 import { ApiError } from '../utils/ApiError.js';
 import { sendError } from '../utils/ApiResponse.js';
 import { logger } from '../config/logger.js';
@@ -35,10 +34,9 @@ export function errorHandler(
     }));
   }
 
-  // Loi trung unique cua Prisma
-  if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+  if (isMongoDuplicateError(err)) {
     statusCode = 409;
-    message = `Gia tri da ton tai: ${err.meta?.target}`;
+    message = 'Gia tri da ton tai.';
   }
 
   if (statusCode >= 500) {
@@ -50,4 +48,8 @@ export function errorHandler(
   // Khong lo stack ra ngoai o production
   const payload = !env.isProd && statusCode >= 500 ? { stack: e.stack } : details;
   return sendError(res, statusCode, message, payload);
+}
+
+function isMongoDuplicateError(err: unknown): err is { code: number } {
+  return typeof err === 'object' && err !== null && 'code' in err && err.code === 11000;
 }
