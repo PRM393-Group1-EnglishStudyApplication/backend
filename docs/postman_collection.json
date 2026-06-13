@@ -1,0 +1,117 @@
+{
+  "info": {
+    "name": "PRM393 Duolingo Clone Backend",
+    "description": "Collection cho Flutter FE. Set bien {{base_url}} va {{token}} trong Environment.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:5001" },
+    { "key": "token", "value": "" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "System",
+      "item": [
+        { "name": "Health", "request": { "method": "GET", "url": "{{base_url}}/api/health" } }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        { "name": "Me", "request": { "method": "GET", "url": "{{base_url}}/api/auth/me" } }
+      ]
+    },
+    {
+      "name": "Courses",
+      "item": [
+        { "name": "List", "request": { "method": "GET", "url": "{{base_url}}/api/courses?targetLevel=beginner" } },
+        { "name": "Recommended", "request": { "method": "GET", "url": "{{base_url}}/api/courses/recommended" } },
+        { "name": "Detail", "request": { "method": "GET", "url": "{{base_url}}/api/courses/:id" } },
+        {
+          "name": "Create",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/courses",
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"English Basics\",\n  \"target_level\": \"beginner\",\n  \"language_id\": 1\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Lessons",
+      "item": [
+        { "name": "Detail", "request": { "method": "GET", "url": "{{base_url}}/api/lessons/:id" } },
+        {
+          "name": "Submit",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/lessons/:lessonId/submit",
+            "body": { "mode": "raw", "raw": "{\n  \"answers\": [\n    { \"exerciseId\": \"665f00000000000000000001\", \"userAnswer\": \"xin chao\" }\n  ]\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Progress / Hearts",
+      "item": [
+        { "name": "My Progress", "request": { "method": "GET", "url": "{{base_url}}/api/progress/me" } },
+        { "name": "My Hearts", "request": { "method": "GET", "url": "{{base_url}}/api/hearts/me" } },
+        { "name": "Refill Hearts", "request": { "method": "POST", "url": "{{base_url}}/api/hearts/refill" } }
+      ]
+    },
+    {
+      "name": "Achievements / Leaderboard",
+      "item": [
+        { "name": "Achievements", "request": { "method": "GET", "url": "{{base_url}}/api/achievements" } },
+        { "name": "Leaderboard", "request": { "method": "GET", "url": "{{base_url}}/api/leaderboard" } }
+      ]
+    },
+    {
+      "name": "TTS (6.0)",
+      "item": [
+        { "name": "Speak (stream)", "request": { "method": "GET", "url": "{{base_url}}/api/tts?text=hello&lang=en" } },
+        { "name": "Speak (link)", "request": { "method": "GET", "url": "{{base_url}}/api/tts?text=hello&lang=en&format=link" } }
+      ]
+    },
+    {
+      "name": "Notifications (6.1)",
+      "item": [
+        {
+          "name": "Register Device Token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/notifications/device-tokens",
+            "body": { "mode": "raw", "raw": "{\n  \"token\": \"fcm_device_token_xxx\",\n  \"platform\": \"android\"\n}" }
+          }
+        },
+        { "name": "Get Reminders", "request": { "method": "GET", "url": "{{base_url}}/api/notifications/reminders/me" } },
+        {
+          "name": "Update Reminders",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/notifications/reminders/me",
+            "body": { "mode": "raw", "raw": "{\n  \"enabled\": true,\n  \"time\": \"19:00\",\n  \"days\": [1,2,3,4,5]\n}" }
+          }
+        },
+        { "name": "My Notifications", "request": { "method": "GET", "url": "{{base_url}}/api/notifications/me" } },
+        {
+          "name": "Send Test",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/notifications/test",
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Test\",\n  \"body\": \"Hello from backend\"\n}" }
+          }
+        }
+      ]
+    }
+  ]
+}

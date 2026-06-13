@@ -1,5 +1,6 @@
 import { ApiError } from '../../utils/ApiError.js';
-import { getWeekStartDate, normalizeAnswer, toObjectId } from '../../utils/mongo.js';
+import { getWeekStartDate, toObjectId } from '../../utils/mongo.js';
+import { calculateScore, deductHearts, isAnswerCorrect, isPassing } from './scoring.js';
 import { AchievementModel, UserAchievementModel } from '../achievements/model.js';
 import { ExerciseModel, ExerciseOptionModel } from '../exercises/model.js';
 import { HeartModel } from '../hearts/model.js';
@@ -80,11 +81,11 @@ export async function submitLesson(user: UserDocument, lessonId: string, answers
     const userAnswer = answerMap.get(exercise._id.toString()) ?? '';
     const exerciseOptions = options.filter((option) => option.exercise_id.toString() === exercise._id.toString());
     const correctOption = exerciseOptions.find((option) => option.is_correct);
-    const normalizedUserAnswer = normalizeAnswer(userAnswer);
-    const acceptedAnswers = [exercise.correct_answer, correctOption?.option_text, correctOption?._id.toString()]
-      .filter(Boolean)
-      .map((value) => normalizeAnswer(value));
-    const isCorrect = acceptedAnswers.includes(normalizedUserAnswer);
+    const isCorrect = isAnswerCorrect(userAnswer, [
+      exercise.correct_answer,
+      correctOption?.option_text,
+      correctOption?._id.toString(),
+    ]);
 
     if (isCorrect) {
       correctAnswers += 1;
@@ -103,7 +104,7 @@ export async function submitLesson(user: UserDocument, lessonId: string, answers
 
   const totalQuestions = exercises.length;
   const wrongAnswers = totalQuestions - correctAnswers;
-  const score = Math.round((correctAnswers / totalQuestions) * 100);
+  const score = calculateScore(correctAnswers, totalQuestions);
 
   const heart = await HeartModel.findOneAndUpdate(
     { user_id: user._id },
@@ -116,14 +117,14 @@ export async function submitLesson(user: UserDocument, lessonId: string, answers
   );
 
   if (wrongAnswers > 0) {
-    heart.current_hearts = Math.max(0, heart.current_hearts - wrongAnswers);
+    heart.current_hearts = deductHearts(heart.current_hearts, wrongAnswers);
     await heart.save();
   }
 
   let earnedXp = 0;
   let unlockedAchievements: unknown[] = [];
 
-  if (score >= 70) {
+  if (isPassing(score)) {
     earnedXp = lesson.xp_reward;
     await UserProgressModel.findOneAndUpdate(
       { user_id: user._id, lesson_id: lesson._id },

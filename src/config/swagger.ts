@@ -124,6 +124,27 @@ const options: swaggerJSDoc.Options = {
             is_correct: { type: 'boolean' },
           },
         },
+        DeviceTokenRequest: {
+          type: 'object',
+          required: ['token'],
+          properties: {
+            token: { type: 'string', example: 'fcm_device_token_xxx' },
+            platform: { type: 'string', enum: ['android', 'ios', 'web'], example: 'android' },
+          },
+        },
+        ReminderSetting: {
+          type: 'object',
+          properties: {
+            enabled: { type: 'boolean', example: true },
+            time: { type: 'string', example: '19:00', description: 'HH:mm theo gio UTC' },
+            days: {
+              type: 'array',
+              items: { type: 'number' },
+              example: [1, 2, 3, 4, 5],
+              description: '0=CN ... 6=Thu7. Rong = moi ngay',
+            },
+          },
+        },
         SubmitLessonRequest: {
           type: 'object',
           required: ['answers'],
@@ -155,6 +176,8 @@ const options: swaggerJSDoc.Options = {
       { name: 'Hearts' },
       { name: 'Achievements' },
       { name: 'Leaderboard' },
+      { name: 'TTS' },
+      { name: 'Notifications' },
       { name: 'Webhooks' },
     ],
     paths: {
@@ -498,6 +521,90 @@ const options: swaggerJSDoc.Options = {
           summary: 'Get current user leaderboard entry',
           security: [{ bearerAuth: [] }],
           responses: { 200: { description: 'My leaderboard entry' }, 401: { description: 'Unauthorized' } },
+        },
+      },
+      '/api/tts': {
+        get: {
+          tags: ['TTS'],
+          summary: 'Text-to-Speech: chuyen van ban thanh audio (proxy)',
+          description:
+            'format=stream (mac dinh) tra ve audio/mpeg; format=link tra ve JSON kem audio_url.',
+          parameters: [
+            { in: 'query', name: 'text', required: true, schema: { type: 'string' }, example: 'hello' },
+            { in: 'query', name: 'lang', schema: { type: 'string' }, example: 'en' },
+            { in: 'query', name: 'format', schema: { type: 'string', enum: ['stream', 'link'] } },
+          ],
+          responses: {
+            200: { description: 'Audio stream (audio/mpeg) hoac JSON link' },
+            400: { description: 'text khong hop le' },
+            502: { description: 'Dich vu TTS ben thu 3 loi' },
+          },
+        },
+      },
+      '/api/notifications/device-tokens': {
+        post: {
+          tags: ['Notifications'],
+          summary: 'Dang ky device token (FCM)',
+          security: [{ bearerAuth: [] }],
+          requestBody: {
+            required: true,
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/DeviceTokenRequest' } } },
+          },
+          responses: { 201: { description: 'Registered' }, 401: { description: 'Unauthorized' } },
+        },
+        delete: {
+          tags: ['Notifications'],
+          summary: 'Huy dang ky device token',
+          security: [{ bearerAuth: [] }],
+          requestBody: {
+            required: true,
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/DeviceTokenRequest' } } },
+          },
+          responses: { 200: { description: 'Removed' }, 401: { description: 'Unauthorized' } },
+        },
+      },
+      '/api/notifications/reminders/me': {
+        get: {
+          tags: ['Notifications'],
+          summary: 'Lay cau hinh nhac hoc cua user',
+          security: [{ bearerAuth: [] }],
+          responses: { 200: { description: 'Reminder setting' }, 401: { description: 'Unauthorized' } },
+        },
+        put: {
+          tags: ['Notifications'],
+          summary: 'Cap nhat cau hinh nhac hoc',
+          security: [{ bearerAuth: [] }],
+          requestBody: {
+            required: true,
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ReminderSetting' } } },
+          },
+          responses: { 200: { description: 'Updated' }, 401: { description: 'Unauthorized' } },
+        },
+      },
+      '/api/notifications/me': {
+        get: {
+          tags: ['Notifications'],
+          summary: 'Lich su thong bao da gui',
+          security: [{ bearerAuth: [] }],
+          responses: { 200: { description: 'Notification logs' }, 401: { description: 'Unauthorized' } },
+        },
+      },
+      '/api/notifications/test': {
+        post: {
+          tags: ['Notifications'],
+          summary: 'Gui thong bao thu nghiem toi chinh minh',
+          security: [{ bearerAuth: [] }],
+          requestBody: {
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: { title: { type: 'string' }, body: { type: 'string' } },
+                },
+              },
+            },
+          },
+          responses: { 200: { description: 'Dispatched' }, 401: { description: 'Unauthorized' } },
         },
       },
     },

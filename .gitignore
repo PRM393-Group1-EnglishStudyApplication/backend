@@ -12,3 +12,6 @@ npm-debug.log*
 uploads/
 .idea/
 .vscode/
+/.claude/
+*.tsbuildinfo
+Thumbs.db

@@ -10,21 +10,111 @@ npm run db:seed
 npm run dev
 ```
 
-Server runs at `http://localhost:3000`.
+Server runs at `http://localhost:5001`.
 
 ## Environment
 
 ```env
 NODE_ENV=development
-PORT=3000
+PORT=5001
 DATABASE_URL=mongodb://localhost:27017/duolingo_clone
 CLERK_PUBLISHABLE_KEY=pk_test_xxx
 CLERK_SECRET_KEY=sk_test_xxx
 CLERK_WEBHOOK_SIGNING_SECRET=whsec_xxx
 CORS_ORIGIN=http://localhost:5173
+
+# TTS (6.0) - tuy chon
+TTS_BASE_URL=https://translate.google.com/translate_tts
+TTS_DEFAULT_LANG=en
+TTS_MAX_LENGTH=200
+
+# Notifications (6.1) - tuy chon
+FCM_SERVER_KEY=
+FCM_ENDPOINT=https://fcm.googleapis.com/fcm/send
+NOTIFICATIONS_SCHEDULER_ENABLED=false
 ```
 
-`DATABASE_URL` must be a MongoDB connection string.
+`DATABASE_URL` must be a MongoDB connection string. Lưu ý: project đang chạy ở cổng **5001** (xem `.env`).
+
+## Testing & Deployment
+
+```bash
+npm test          # unit test (logic chấm điểm, nhắc học, TTS, utils)
+npm run typecheck
+npm run build     # biên dịch sang dist/
+npm start         # chạy production
+```
+
+Xem chi tiết deploy (Docker, Staging, Postman) tại [DEPLOYMENT.md](DEPLOYMENT.md). Postman collection: [docs/postman_collection.json](docs/postman_collection.json).
+
+## Docker
+
+Project có sẵn [Dockerfile](Dockerfile) (multi-stage: build TypeScript → chạy `dist/`).
+
+### Build image
+
+```bash
+docker build -t elearning-backend .
+```
+
+### Chạy container
+
+Tạo file `.env` (xem mục [Environment](#environment)) rồi truyền vào container:
+
+```bash
+docker run -d --name elearning-backend \
+  --env-file .env \
+  -p 5001:5001 \
+  elearning-backend
+```
+
+Server chạy tại `http://localhost:5001`, Swagger tại `http://localhost:5001/api-docs`.
+
+> Lưu ý: nếu `DATABASE_URL` trỏ tới MongoDB chạy trên máy host (vd `mongodb://localhost:27017/...`), trong container `localhost` là chính container đó. Dùng `host.docker.internal` thay cho `localhost`:
+>
+> ```env
+> DATABASE_URL=mongodb://host.docker.internal:27017/duolingo_clone
+> ```
+>
+> Hoặc dùng MongoDB Atlas (`mongodb+srv://...`).
+
+### Lệnh hữu ích
+
+```bash
+docker logs -f elearning-backend     # xem log
+docker stop elearning-backend        # dừng
+docker rm elearning-backend          # xoá container
+```
+
+### (Tuỳ chọn) Docker Compose kèm MongoDB
+
+Nếu muốn chạy cả MongoDB cùng lúc, tạo `docker-compose.yml`:
+
+```yaml
+services:
+  api:
+    build: .
+    ports:
+      - "5001:5001"
+    env_file: .env
+    environment:
+      DATABASE_URL: mongodb://mongo:27017/duolingo_clone
+    depends_on:
+      - mongo
+  mongo:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:
+```
+
+```bash
+docker compose up -d --build
+```
 
 ## Seed
 
@@ -86,6 +176,26 @@ Authorization: Bearer <clerk_session_token>
 - `POST /api/achievements`
 - `GET /api/leaderboard`
 - `GET /api/leaderboard/me`
+- `GET /api/tts?text=hello&lang=en&format=stream|link`
+- `POST /api/notifications/device-tokens`
+- `DELETE /api/notifications/device-tokens`
+- `GET /api/notifications/reminders/me`
+- `PUT /api/notifications/reminders/me`
+- `GET /api/notifications/me`
+- `POST /api/notifications/test`
+
+## Text-to-Speech (TTS)
+
+Proxy tới dịch vụ TTS để phát âm từ/câu (mặc định Google Translate TTS, không cần API key).
+
+```http
+GET /api/tts?text=hello&lang=en          # -> audio/mpeg stream
+GET /api/tts?text=hello&lang=en&format=link   # -> JSON { audio_url }
+```
+
+## Notifications / Reminders
+
+Đăng ký device token (FCM), cấu hình lịch nhắc học, gửi push. Nếu không cấu hình `FCM_SERVER_KEY`, push chạy ở chế độ **log** (chỉ ghi log, không cần credential). Bật bộ lập lịch tự động bằng `NOTIFICATIONS_SCHEDULER_ENABLED=true`.
 
 ## Submit Lesson Example
 

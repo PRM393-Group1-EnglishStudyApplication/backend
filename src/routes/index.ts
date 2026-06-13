@@ -7,7 +7,9 @@ import { exerciseOptionsRouter, exercisesRouter, lessonExercisesRouter } from '.
 import { heartsRouter } from '../modules/hearts/route.js';
 import { leaderboardRouter } from '../modules/leaderboard/route.js';
 import { lessonsRouter, unitLessonsRouter } from '../modules/lessons/route.js';
+import { notificationsRouter } from '../modules/notifications/route.js';
 import { progressRouter } from '../modules/progress/route.js';
+import { ttsRouter } from '../modules/tts/route.js';
 import { courseUnitsRouter, unitsRouter } from '../modules/units/route.js';
 import { lessonVocabularyRouter, vocabularyRouter } from '../modules/vocabulary/route.js';
 
@@ -39,3 +41,5 @@ apiRouter.use('/progress', progressRouter);
 apiRouter.use('/hearts', heartsRouter);
 apiRouter.use('/achievements', achievementsRouter);
 apiRouter.use('/leaderboard', leaderboardRouter);
+apiRouter.use('/tts', ttsRouter);
+apiRouter.use('/notifications', notificationsRouter);
