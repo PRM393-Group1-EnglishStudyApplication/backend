@@ -3,6 +3,7 @@ import { app } from './app.js';
 import { env } from './config/env.js';
 import { connectDB, disconnectDB } from './config/database.js';
 import { logger } from './config/logger.js';
+import { startReminderScheduler, stopReminderScheduler } from './modules/notifications/service.js';
 
 let server: http.Server | null = null;
 
@@ -15,6 +16,8 @@ async function bootstrap(): Promise<void> {
       logger.info(`Server is running at http://localhost:${env.port}`);
       logger.info(`API docs available at http://localhost:${env.port}/api-docs`);
     });
+
+    startReminderScheduler();
   } catch (error) {
     logger.error(error);
     process.exit(1);
@@ -23,6 +26,7 @@ async function bootstrap(): Promise<void> {
 
 async function shutdown(signal: NodeJS.Signals): Promise<void> {
   logger.info(`${signal} received, shutting down`);
+  stopReminderScheduler();
 
   if (server) {
     server.close(async () => {

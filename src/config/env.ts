@@ -23,4 +23,22 @@ export const env = {
   },
 
   corsOrigin: process.env.CORS_ORIGIN || '*',
+
+  // 6.0 - TTS proxy. Mac dinh dung Google Translate TTS (khong can API key).
+  tts: {
+    baseUrl: process.env.TTS_BASE_URL || 'https://translate.google.com/translate_tts',
+    defaultLang: process.env.TTS_DEFAULT_LANG || 'en',
+    maxLength: Number(process.env.TTS_MAX_LENGTH) || 200,
+  },
+
+  // 6.1 - Push notification qua FCM. Neu khong cau hinh serverKey -> chay che do "log".
+  fcm: {
+    serverKey: process.env.FCM_SERVER_KEY || '',
+    endpoint: process.env.FCM_ENDPOINT || 'https://fcm.googleapis.com/fcm/send',
+  },
+  notifications: {
+    schedulerEnabled: process.env.NOTIFICATIONS_SCHEDULER_ENABLED === 'true',
+    defaultTitle: process.env.REMINDER_TITLE || 'Da den gio hoc roi!',
+    defaultBody: process.env.REMINDER_BODY || 'Danh vai phut on tap de giu chuoi streak nhe.',
+  },
 } as const;

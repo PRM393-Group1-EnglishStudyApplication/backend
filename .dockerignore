@@ -1,0 +1,14 @@
+node_modules
+dist
+build
+coverage
+logs
+*.log
+.git
+.gitignore
+.env
+.env.*
+.vscode
+.idea
+docs/postman_collection.json
+*.md
