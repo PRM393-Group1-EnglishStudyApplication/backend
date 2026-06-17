@@ -171,6 +171,7 @@ const options: swaggerJSDoc.Options = {
       { name: 'Units' },
       { name: 'Lessons' },
       { name: 'Vocabulary' },
+      { name: 'Favorites' },
       { name: 'Exercises' },
       { name: 'Progress' },
       { name: 'Hearts' },
@@ -397,6 +398,41 @@ const options: swaggerJSDoc.Options = {
             { in: 'path', name: 'vocabularyId', required: true, schema: { type: 'string' } },
           ],
           responses: { 200: { description: 'Detached' } },
+        },
+      },
+      '/api/favorites/me': {
+        get: {
+          tags: ['Favorites'],
+          summary: 'List current user favorite vocabulary',
+          security: [{ bearerAuth: [] }],
+          responses: {
+            200: { description: 'Favorite vocabulary list' },
+            401: { description: 'Unauthorized' },
+          },
+        },
+      },
+      '/api/favorites/{vocabularyId}': {
+        post: {
+          tags: ['Favorites'],
+          summary: 'Add a vocabulary to current user favorites',
+          security: [{ bearerAuth: [] }],
+          parameters: [{ in: 'path', name: 'vocabularyId', required: true, schema: { type: 'string' } }],
+          responses: {
+            201: { description: 'Added to favorites' },
+            401: { description: 'Unauthorized' },
+            404: { description: 'Vocabulary not found' },
+          },
+        },
+        delete: {
+          tags: ['Favorites'],
+          summary: 'Remove a vocabulary from current user favorites',
+          security: [{ bearerAuth: [] }],
+          parameters: [{ in: 'path', name: 'vocabularyId', required: true, schema: { type: 'string' } }],
+          responses: {
+            200: { description: 'Removed from favorites' },
+            401: { description: 'Unauthorized' },
+            404: { description: 'Favorite not found' },
+          },
         },
       },
       '/api/lessons/{lessonId}/exercises': {
