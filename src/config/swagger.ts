@@ -45,6 +45,7 @@ const options: swaggerJSDoc.Options = {
             full_name: { type: 'string', example: 'Nguyen Van A' },
             email: { type: 'string', example: 'user@example.com' },
             avatar_url: { type: 'string', example: 'https://img.clerk.com/avatar.png' },
+            role: { type: 'string', enum: ['admin', 'student'], example: 'student' },
             total_xp: { type: 'number', example: 120 },
             current_level: {
               type: 'string',
@@ -122,6 +123,29 @@ const options: swaggerJSDoc.Options = {
             exercise_id: { type: 'string' },
             option_text: { type: 'string' },
             is_correct: { type: 'boolean' },
+            order_index: { type: 'number', example: 0 },
+          },
+        },
+        ReorderOptionsRequest: {
+          type: 'object',
+          required: ['order'],
+          properties: {
+            order: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'Danh sach _id cua option theo thu tu mong muon (phai khop day du cac option).',
+              example: ['665f00000000000000000001', '665f00000000000000000002'],
+            },
+          },
+        },
+        UploadImageResponse: {
+          type: 'object',
+          properties: {
+            key: { type: 'string', example: 'images/9b1c....png' },
+            url: { type: 'string', example: 'https://my-bucket.s3.ap-southeast-1.amazonaws.com/images/9b1c....png' },
+            bucket: { type: 'string', example: 'my-bucket' },
+            contentType: { type: 'string', example: 'image/png' },
+            size: { type: 'number', example: 20480 },
           },
         },
         DeviceTokenRequest: {
@@ -178,6 +202,7 @@ const options: swaggerJSDoc.Options = {
       { name: 'Achievements' },
       { name: 'Leaderboard' },
       { name: 'TTS' },
+      { name: 'Uploads' },
       { name: 'Notifications' },
       { name: 'Webhooks' },
     ],
@@ -484,6 +509,25 @@ const options: swaggerJSDoc.Options = {
           responses: { 201: { description: 'Created' } },
         },
       },
+      '/api/exercises/{exerciseId}/options/reorder': {
+        put: {
+          tags: ['Exercises'],
+          summary: 'Reorder options of an exercise (admin only)',
+          description: 'Cap nhat order_index cho cac option theo thu tu trong mang "order".',
+          security: [{ bearerAuth: [] }],
+          parameters: [{ in: 'path', name: 'exerciseId', required: true, schema: { type: 'string' } }],
+          requestBody: {
+            required: true,
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ReorderOptionsRequest' } } },
+          },
+          responses: {
+            200: { description: 'Reordered options list' },
+            400: { description: 'Danh sach option khong hop le' },
+            401: { description: 'Unauthorized' },
+            403: { description: 'Khong phai admin' },
+          },
+        },
+      },
       '/api/exercise-options/{id}': {
         put: {
           tags: ['Exercises'],
@@ -574,6 +618,35 @@ const options: swaggerJSDoc.Options = {
             200: { description: 'Audio stream (audio/mpeg) hoac JSON link' },
             400: { description: 'text khong hop le' },
             502: { description: 'Dich vu TTS ben thu 3 loi' },
+          },
+        },
+      },
+      '/api/uploads/image': {
+        post: {
+          tags: ['Uploads'],
+          summary: 'Upload an image to AWS S3 (admin only)',
+          description: 'multipart/form-data voi field "image". Toi da 5MB, chi nhan jpeg/png/webp/gif.',
+          security: [{ bearerAuth: [] }],
+          requestBody: {
+            required: true,
+            content: {
+              'multipart/form-data': {
+                schema: {
+                  type: 'object',
+                  required: ['image'],
+                  properties: { image: { type: 'string', format: 'binary' } },
+                },
+              },
+            },
+          },
+          responses: {
+            201: {
+              description: 'Uploaded',
+              content: { 'application/json': { schema: { $ref: '#/components/schemas/UploadImageResponse' } } },
+            },
+            400: { description: 'Thieu file / sai dinh dang / S3 chua cau hinh' },
+            401: { description: 'Unauthorized' },
+            403: { description: 'Khong phai admin' },
           },
         },
       },

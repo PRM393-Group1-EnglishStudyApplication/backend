@@ -24,6 +24,16 @@ export const env = {
 
   corsOrigin: process.env.CORS_ORIGIN || '*',
 
+  // Upload anh len AWS S3. Bat buoc khi dung endpoint /api/uploads/image.
+  aws: {
+    region: process.env.AWS_REGION || 'ap-southeast-1',
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+    s3Bucket: process.env.AWS_S3_BUCKET || '',
+    // Tuy chon: CloudFront/CDN domain de tao public URL. Mac dinh dung S3 virtual-hosted URL.
+    s3PublicBaseUrl: process.env.AWS_S3_PUBLIC_BASE_URL || '',
+  },
+
   // 6.0 - TTS proxy. Mac dinh dung Google Translate TTS (khong can API key).
   tts: {
     baseUrl: process.env.TTS_BASE_URL || 'https://translate.google.com/translate_tts',

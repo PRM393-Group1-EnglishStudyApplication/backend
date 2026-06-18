@@ -32,6 +32,13 @@ TTS_MAX_LENGTH=200
 FCM_SERVER_KEY=
 FCM_ENDPOINT=https://fcm.googleapis.com/fcm/send
 NOTIFICATIONS_SCHEDULER_ENABLED=false
+
+# AWS S3 (upload anh) - bat buoc khi dung POST /api/uploads/image
+AWS_REGION=ap-southeast-1
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_S3_BUCKET=
+AWS_S3_PUBLIC_BASE_URL=   # tuy chon: CDN/CloudFront domain
 ```
 
 `DATABASE_URL` must be a MongoDB connection string. Lưu ý: project đang chạy ở cổng **5001** (xem `.env`).
@@ -132,6 +139,19 @@ Authentication is handled by Clerk on the frontend. Protected APIs use the Clerk
 Authorization: Bearer <clerk_session_token>
 ```
 
+### Roles (admin / student)
+
+Mỗi user có trường `role` (`admin` | `student`), mặc định `student`. Role được đồng bộ từ Clerk **publicMetadata** (`{ "role": "admin" }`) — set trong Clerk Dashboard hoặc qua API; nếu không có thì giữ nguyên role hiện tại trong DB. Các route quản lý nội dung (tạo/sửa/xoá exercise, reorder options, upload ảnh) yêu cầu `role = admin`, ngược lại trả về `403`.
+
+### Upload ảnh (AWS S3)
+
+```http
+POST /api/uploads/image            # multipart/form-data, field "image", <= 5MB
+Authorization: Bearer <admin_token>
+```
+
+Trả về `{ key, url, bucket, contentType, size }`. Cần cấu hình các biến `AWS_*` (xem mục Environment).
+
 ## APIs
 
 - `GET /api/auth/me`
@@ -165,6 +185,7 @@ Authorization: Bearer <clerk_session_token>
 - `PUT /api/exercises/:id`
 - `DELETE /api/exercises/:id`
 - `POST /api/exercises/:exerciseId/options`
+- `PUT /api/exercises/:exerciseId/options/reorder` (admin)
 - `PUT /api/exercise-options/:id`
 - `DELETE /api/exercise-options/:id`
 - `GET /api/progress/me`
@@ -177,6 +198,7 @@ Authorization: Bearer <clerk_session_token>
 - `GET /api/leaderboard`
 - `GET /api/leaderboard/me`
 - `GET /api/tts?text=hello&lang=en&format=stream|link`
+- `POST /api/uploads/image` (admin, multipart field `image`)
 - `POST /api/notifications/device-tokens`
 - `DELETE /api/notifications/device-tokens`
 - `GET /api/notifications/reminders/me`

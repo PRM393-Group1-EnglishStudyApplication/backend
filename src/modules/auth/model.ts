@@ -3,11 +3,15 @@ import { Schema, model, type HydratedDocument } from 'mongoose';
 export const userLevels = ['beginner', 'elementary', 'intermediate', 'advanced'] as const;
 export type UserLevel = (typeof userLevels)[number];
 
+export const userRoles = ['admin', 'student'] as const;
+export type UserRole = (typeof userRoles)[number];
+
 export interface IUser {
   clerk_user_id?: string;
   full_name?: string;
   email: string;
   avatar_url?: string;
+  role: UserRole;
   total_xp: number;
   current_level: UserLevel;
   streak_count: number;
@@ -22,6 +26,7 @@ const userSchema = new Schema<IUser>(
     full_name: { type: String, trim: true },
     email: { type: String, required: true, unique: true, trim: true, lowercase: true },
     avatar_url: { type: String },
+    role: { type: String, enum: userRoles, default: 'student' },
     total_xp: { type: Number, default: 0 },
     current_level: { type: String, enum: userLevels, default: 'beginner' },
     streak_count: { type: Number, default: 0 },

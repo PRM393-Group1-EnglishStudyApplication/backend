@@ -1,6 +1,6 @@
 import { ApiError } from '../../utils/ApiError.js';
 import { HeartModel } from '../hearts/model.js';
-import { UserModel, type UserDocument } from './model.js';
+import { UserModel, userRoles, type UserDocument, type UserRole } from './model.js';
 
 export type ClerkUserLike = {
   id: string;
@@ -13,6 +13,7 @@ export type ClerkUserLike = {
     id?: string;
     emailAddress?: string;
   }>;
+  publicMetadata?: Record<string, unknown> | null;
 };
 
 export type ClerkWebhookUserLike = {
@@ -25,6 +26,7 @@ export type ClerkWebhookUserLike = {
     id?: string;
     email_address?: string;
   }>;
+  public_metadata?: Record<string, unknown> | null;
 };
 
 type ClerkSyncInput = {
@@ -32,7 +34,16 @@ type ClerkSyncInput = {
   email: string;
   fullName?: string;
   avatarUrl?: string;
+  role?: UserRole;
 };
+
+// Doc role tu Clerk publicMetadata (set tu Clerk dashboard). Chi nhan gia tri hop le.
+function getRoleFromMetadata(metadata?: Record<string, unknown> | null): UserRole | undefined {
+  const role = metadata?.role;
+  return typeof role === 'string' && (userRoles as readonly string[]).includes(role)
+    ? (role as UserRole)
+    : undefined;
+}
 
 export function getPrimaryEmailFromClerkUser(user: ClerkUserLike): string | null {
   const primaryEmail = user.emailAddresses?.find((email) => email.id === user.primaryEmailAddressId);
@@ -55,6 +66,7 @@ export function mapClerkUser(user: ClerkUserLike): ClerkSyncInput {
     email: email.toLowerCase().trim(),
     fullName: getFullNameFromClerkUser(user),
     avatarUrl: user.imageUrl || undefined,
+    role: getRoleFromMetadata(user.publicMetadata),
   };
 }
 
@@ -71,6 +83,7 @@ export function mapClerkWebhookUser(user: ClerkWebhookUserLike): ClerkSyncInput 
     email: email.toLowerCase().trim(),
     fullName,
     avatarUrl: user.image_url || undefined,
+    role: getRoleFromMetadata(user.public_metadata),
   };
 }
 
@@ -84,6 +97,10 @@ export async function syncClerkUser(input: ClerkSyncInput): Promise<UserDocument
     existingUser.email = input.email;
     existingUser.full_name = input.fullName;
     existingUser.avatar_url = input.avatarUrl;
+    // Chi cap nhat role khi Clerk metadata cung cap; giu nguyen role hien tai neu khong.
+    if (input.role) {
+      existingUser.role = input.role;
+    }
     await existingUser.save();
     return existingUser;
   }
@@ -93,6 +110,7 @@ export async function syncClerkUser(input: ClerkSyncInput): Promise<UserDocument
     full_name: input.fullName,
     email: input.email,
     avatar_url: input.avatarUrl,
+    role: input.role ?? 'student',
     total_xp: 0,
     current_level: 'beginner',
     streak_count: 0,

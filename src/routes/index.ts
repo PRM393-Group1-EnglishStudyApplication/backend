@@ -11,6 +11,7 @@ import { lessonsRouter, unitLessonsRouter } from '../modules/lessons/route.js';
 import { notificationsRouter } from '../modules/notifications/route.js';
 import { progressRouter } from '../modules/progress/route.js';
 import { ttsRouter } from '../modules/tts/route.js';
+import { uploadsRouter } from '../modules/uploads/route.js';
 import { courseUnitsRouter, unitsRouter } from '../modules/units/route.js';
 import { lessonVocabularyRouter, vocabularyRouter } from '../modules/vocabulary/route.js';
 
@@ -44,4 +45,5 @@ apiRouter.use('/hearts', heartsRouter);
 apiRouter.use('/achievements', achievementsRouter);
 apiRouter.use('/leaderboard', leaderboardRouter);
 apiRouter.use('/tts', ttsRouter);
+apiRouter.use('/uploads', uploadsRouter);
 apiRouter.use('/notifications', notificationsRouter);

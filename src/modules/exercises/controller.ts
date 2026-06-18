@@ -10,6 +10,7 @@ import {
   deleteExerciseOption,
   getExerciseDetail,
   listExercisesWithOptions,
+  reorderExerciseOptions,
   updateExercise,
   updateExerciseOption,
 } from './service.js';
@@ -33,6 +34,10 @@ const exerciseSchema = z.object({
 
 const updateExerciseSchema = exerciseSchema.omit({ options: true }).partial();
 const updateOptionSchema = optionSchema.partial();
+
+const reorderOptionsSchema = z.object({
+  order: z.array(z.string().min(1)).min(1),
+});
 
 export const getExercisesByLesson = asyncHandler(async (req, res) => {
   return sendSuccess(res, await listExercisesWithOptions(req.params.lessonId));
@@ -68,6 +73,11 @@ export const postExerciseOption = asyncHandler(async (req, res) => {
 
 export const putExerciseOption = asyncHandler(async (req, res) => {
   return sendSuccess(res, await updateExerciseOption(req.params.id, updateOptionSchema.parse(req.body)));
+});
+
+export const reorderOptions = asyncHandler(async (req, res) => {
+  const { order } = reorderOptionsSchema.parse(req.body);
+  return sendSuccess(res, await reorderExerciseOptions(req.params.exerciseId, order), 'Reordered');
 });
 
 export const removeExerciseOption = asyncHandler(async (req, res) => {

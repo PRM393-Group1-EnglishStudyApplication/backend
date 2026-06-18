@@ -8,7 +8,9 @@ export async function listExercisesWithOptions(lessonId: string) {
     .lean();
   const options = await ExerciseOptionModel.find({
     exercise_id: { $in: exercises.map((exercise) => exercise._id) },
-  }).lean();
+  })
+    .sort({ order_index: 1, _id: 1 })
+    .lean();
 
   return exercises.map((exercise) => ({
     ...exercise,
@@ -21,7 +23,9 @@ export async function getExerciseDetail(id: string) {
   if (!exercise) {
     throw ApiError.notFound('Exercise khong ton tai.');
   }
-  const options = await ExerciseOptionModel.find({ exercise_id: exercise._id }).lean();
+  const options = await ExerciseOptionModel.find({ exercise_id: exercise._id })
+    .sort({ order_index: 1, _id: 1 })
+    .lean();
   return { ...exercise, options };
 }
 
@@ -70,4 +74,32 @@ export async function deleteExerciseOption(id: string) {
     throw ApiError.notFound('Exercise option khong ton tai.');
   }
   return option;
+}
+
+// Sap xep lai thu tu cac option cua mot exercise theo danh sach id truyen vao.
+export async function reorderExerciseOptions(exerciseId: string, orderedOptionIds: string[]) {
+  const exId = toObjectId(exerciseId, 'exerciseId');
+
+  const existing = await ExerciseOptionModel.find({ exercise_id: exId }).select('_id').lean();
+  const existingIds = new Set(existing.map((option) => option._id.toString()));
+  const uniqueIds = new Set(orderedOptionIds);
+
+  if (
+    uniqueIds.size !== orderedOptionIds.length ||
+    orderedOptionIds.length !== existing.length ||
+    !orderedOptionIds.every((id) => existingIds.has(id))
+  ) {
+    throw ApiError.badRequest('Danh sach option phai khop day du voi cac option cua exercise (khong trung, khong thieu).');
+  }
+
+  await ExerciseOptionModel.bulkWrite(
+    orderedOptionIds.map((id, index) => ({
+      updateOne: {
+        filter: { _id: toObjectId(id, 'optionId'), exercise_id: exId },
+        update: { $set: { order_index: index } },
+      },
+    }))
+  );
+
+  return ExerciseOptionModel.find({ exercise_id: exId }).sort({ order_index: 1, _id: 1 }).lean();
 }

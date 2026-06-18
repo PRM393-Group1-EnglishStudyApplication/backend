@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
+import { MulterError } from 'multer';
 import { ApiError } from '../utils/ApiError.js';
 import { sendError } from '../utils/ApiResponse.js';
 import { logger } from '../config/logger.js';
@@ -37,6 +38,12 @@ export function errorHandler(
   if (isMongoDuplicateError(err)) {
     statusCode = 409;
     message = 'Gia tri da ton tai.';
+  }
+
+  // Loi upload file (multer): vuot kich thuoc, sai field, ...
+  if (err instanceof MulterError) {
+    statusCode = 400;
+    message = err.code === 'LIMIT_FILE_SIZE' ? 'File anh vuot qua kich thuoc cho phep (5MB).' : err.message;
   }
 
   if (statusCode >= 500) {

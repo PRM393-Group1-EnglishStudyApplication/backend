@@ -17,6 +17,7 @@ export interface IExerciseOption {
   exercise_id: Types.ObjectId;
   option_text: string;
   is_correct: boolean;
+  order_index?: number;
 }
 
 const exerciseSchema = new Schema<IExercise>(
@@ -37,12 +38,13 @@ const exerciseOptionSchema = new Schema<IExerciseOption>(
     exercise_id: { type: Schema.Types.ObjectId, ref: 'Exercise', required: true },
     option_text: { type: String, required: true },
     is_correct: { type: Boolean, default: false },
+    order_index: { type: Number },
   },
   { versionKey: false }
 );
 
 exerciseSchema.index({ lesson_id: 1, order_index: 1 });
-exerciseOptionSchema.index({ exercise_id: 1 });
+exerciseOptionSchema.index({ exercise_id: 1, order_index: 1 });
 
 export const ExerciseModel = model<IExercise>('Exercise', exerciseSchema, 'exercises');
 export const ExerciseOptionModel = model<IExerciseOption>(
