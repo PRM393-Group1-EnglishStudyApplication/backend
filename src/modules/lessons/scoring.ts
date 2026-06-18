@@ -2,7 +2,6 @@ import { normalizeAnswer } from '../../utils/mongo.js';
 
 // Logic cham diem thuan (khong phu thuoc DB) -> de viet unit test (WBS 7.0)
 export const PASS_SCORE = 70;
-export const DEFAULT_MAX_HEARTS = 5;
 
 // So sanh cau tra loi cua user voi danh sach dap an duoc chap nhan (da chuan hoa)
 export function isAnswerCorrect(userAnswer: unknown, acceptedRawAnswers: Array<unknown>): boolean {

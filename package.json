@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit",
     "db:seed": "tsx src/seed.ts",
     "lint": "eslint .",
-    "test": "node --import tsx --test src/utils/utils.test.ts src/modules/lessons/scoring.test.ts src/modules/tts/tts.test.ts src/modules/notifications/reminder.test.ts src/modules/favorites/favorites.test.ts"
+    "test": "node --import tsx --test src/utils/utils.test.ts src/modules/lessons/scoring.test.ts src/modules/tts/tts.test.ts src/modules/notifications/reminder.test.ts src/modules/favorites/favorites.test.ts src/modules/hearts/hearts.test.ts"
   },
   "keywords": [
     "express",

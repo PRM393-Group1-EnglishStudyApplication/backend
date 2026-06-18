@@ -295,13 +295,21 @@ const options: swaggerJSDoc.Options = {
         },
         Heart: {
           type: 'object',
-          required: ['_id', 'user_id', 'current_hearts', 'max_hearts'],
+          required: [
+            'user_id',
+            'current_hearts',
+            'max_hearts',
+            'last_refill_at',
+            'next_refill_at',
+            'seconds_until_next_refill',
+          ],
           properties: {
-            _id: { type: 'string' },
             user_id: { type: 'string' },
-            current_hearts: { type: 'integer', example: 5 },
-            max_hearts: { type: 'integer', example: 5 },
+            current_hearts: { type: 'integer', example: 12 },
+            max_hearts: { type: 'integer', example: 15 },
             last_refill_at: { type: 'string', format: 'date-time' },
+            next_refill_at: { type: 'string', format: 'date-time', nullable: true },
+            seconds_until_next_refill: { type: 'integer', example: 420, nullable: true },
           },
         },
         UserProgress: {

@@ -1,5 +1,5 @@
 import { ApiError } from '../../utils/ApiError.js';
-import { HeartModel } from '../hearts/model.js';
+import { getMyHearts } from '../hearts/service.js';
 import { UserModel, userRoles, type UserDocument, type UserRole } from './model.js';
 
 export type ClerkUserLike = {
@@ -102,6 +102,7 @@ export async function syncClerkUser(input: ClerkSyncInput): Promise<UserDocument
       existingUser.role = input.role;
     }
     await existingUser.save();
+    await getMyHearts(existingUser._id.toString());
     return existingUser;
   }
 
@@ -117,11 +118,7 @@ export async function syncClerkUser(input: ClerkSyncInput): Promise<UserDocument
     created_at: new Date(),
   });
 
-  await HeartModel.create({
-    user_id: user._id,
-    current_hearts: 5,
-    max_hearts: 5,
-  });
+  await getMyHearts(user._id.toString());
 
   return user;
 }

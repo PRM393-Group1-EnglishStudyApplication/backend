@@ -1,9 +1,9 @@
 import { ApiError } from '../../utils/ApiError.js';
 import { getWeekStartDate, toObjectId } from '../../utils/mongo.js';
-import { calculateScore, deductHearts, isAnswerCorrect, isPassing } from './scoring.js';
+import { calculateScore, isAnswerCorrect, isPassing } from './scoring.js';
 import { AchievementModel, UserAchievementModel } from '../achievements/model.js';
 import { ExerciseModel, ExerciseOptionModel } from '../exercises/model.js';
-import { HeartModel } from '../hearts/model.js';
+import { applyLessonHeartCost } from '../hearts/service.js';
 import { LeaderboardModel } from '../leaderboard/model.js';
 import { UserModel, type UserDocument } from '../auth/model.js';
 import { UserExerciseAnswerModel, UserProgressModel } from '../progress/model.js';
@@ -100,26 +100,12 @@ export async function submitLesson(user: UserDocument, lessonId: string, answers
     });
   }
 
-  await UserExerciseAnswerModel.insertMany(answerDocs);
-
   const totalQuestions = exercises.length;
   const wrongAnswers = totalQuestions - correctAnswers;
   const score = calculateScore(correctAnswers, totalQuestions);
+  const heart = await applyLessonHeartCost(user._id.toString(), wrongAnswers);
 
-  const heart = await HeartModel.findOneAndUpdate(
-    { user_id: user._id },
-    {
-      $setOnInsert: {
-        max_hearts: 5,
-      },
-    },
-    { upsert: true, new: true }
-  );
-
-  if (wrongAnswers > 0) {
-    heart.current_hearts = deductHearts(heart.current_hearts, wrongAnswers);
-    await heart.save();
-  }
+  await UserExerciseAnswerModel.insertMany(answerDocs);
 
   let earnedXp = 0;
   let unlockedAchievements: unknown[] = [];
