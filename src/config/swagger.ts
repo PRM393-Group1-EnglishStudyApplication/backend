@@ -1,4 +1,5 @@
 import swaggerJSDoc from 'swagger-jsdoc';
+import { env } from './env.js';
 
 const options: swaggerJSDoc.Options = {
   definition: {
@@ -10,7 +11,8 @@ const options: swaggerJSDoc.Options = {
     },
     servers: [
       {
-        url: 'http://localhost:3000',
+        url: `http://localhost:${env.port}`,
+        description: 'Local development server',
       },
     ],
     components: {
@@ -24,21 +26,25 @@ const options: swaggerJSDoc.Options = {
       schemas: {
         ApiSuccess: {
           type: 'object',
+          required: ['success', 'message', 'data'],
           properties: {
-            success: { type: 'boolean', example: true },
+            success: { type: 'boolean', enum: [true] },
             message: { type: 'string', example: 'Success' },
-            data: { type: 'object' },
+            data: { nullable: true },
           },
         },
         ApiError: {
           type: 'object',
+          required: ['success', 'message'],
           properties: {
-            success: { type: 'boolean', example: false },
+            success: { type: 'boolean', enum: [false] },
             message: { type: 'string', example: 'Ban can dang nhap de truy cap.' },
+            details: { nullable: true },
           },
         },
         User: {
           type: 'object',
+          required: ['_id', 'email', 'role', 'total_xp', 'current_level', 'streak_count'],
           properties: {
             _id: { type: 'string', example: '665f00000000000000000000' },
             clerk_user_id: { type: 'string', example: 'user_2abc123' },
@@ -58,6 +64,7 @@ const options: swaggerJSDoc.Options = {
         },
         Course: {
           type: 'object',
+          required: ['_id', 'title', 'language_id'],
           properties: {
             _id: { type: 'string' },
             title: { type: 'string', example: 'English Basics' },
@@ -71,6 +78,7 @@ const options: swaggerJSDoc.Options = {
         },
         Unit: {
           type: 'object',
+          required: ['_id', 'course_id', 'title', 'order_index'],
           properties: {
             _id: { type: 'string' },
             course_id: { type: 'string' },
@@ -80,6 +88,7 @@ const options: swaggerJSDoc.Options = {
         },
         Lesson: {
           type: 'object',
+          required: ['_id', 'unit_id', 'title', 'order_index', 'xp_reward'],
           properties: {
             _id: { type: 'string' },
             unit_id: { type: 'string' },
@@ -90,6 +99,7 @@ const options: swaggerJSDoc.Options = {
         },
         Vocabulary: {
           type: 'object',
+          required: ['_id', 'word', 'meaning'],
           properties: {
             _id: { type: 'string' },
             word: { type: 'string', example: 'hello' },
@@ -102,6 +112,7 @@ const options: swaggerJSDoc.Options = {
         },
         Exercise: {
           type: 'object',
+          required: ['_id', 'lesson_id', 'question', 'exercise_type', 'correct_answer'],
           properties: {
             _id: { type: 'string' },
             lesson_id: { type: 'string' },
@@ -118,12 +129,235 @@ const options: swaggerJSDoc.Options = {
         },
         ExerciseOption: {
           type: 'object',
+          required: ['_id', 'exercise_id', 'option_text', 'is_correct'],
           properties: {
             _id: { type: 'string' },
             exercise_id: { type: 'string' },
             option_text: { type: 'string' },
             is_correct: { type: 'boolean' },
             order_index: { type: 'number', example: 0 },
+          },
+        },
+        CourseInput: {
+          type: 'object',
+          required: ['title', 'language_id'],
+          properties: {
+            title: { type: 'string', minLength: 1, example: 'English Basics' },
+            description: { type: 'string' },
+            language_id: { type: 'integer', example: 1 },
+            target_level: {
+              type: 'string',
+              enum: ['beginner', 'elementary', 'intermediate', 'advanced'],
+            },
+          },
+        },
+        CourseUpdateInput: {
+          type: 'object',
+          properties: {
+            title: { type: 'string', minLength: 1 },
+            description: { type: 'string' },
+            language_id: { type: 'integer' },
+            target_level: {
+              type: 'string',
+              enum: ['beginner', 'elementary', 'intermediate', 'advanced'],
+            },
+          },
+        },
+        UnitInput: {
+          type: 'object',
+          required: ['course_id', 'title', 'order_index'],
+          properties: {
+            course_id: { type: 'string', example: '665f00000000000000000000' },
+            title: { type: 'string', minLength: 1 },
+            order_index: { type: 'integer', example: 1 },
+          },
+        },
+        UnitUpdateInput: {
+          type: 'object',
+          properties: {
+            course_id: { type: 'string' },
+            title: { type: 'string', minLength: 1 },
+            order_index: { type: 'integer' },
+          },
+        },
+        LessonInput: {
+          type: 'object',
+          required: ['unit_id', 'title', 'order_index'],
+          properties: {
+            unit_id: { type: 'string', example: '665f00000000000000000000' },
+            title: { type: 'string', minLength: 1 },
+            order_index: { type: 'integer', example: 1 },
+            xp_reward: { type: 'integer', default: 10, example: 10 },
+          },
+        },
+        LessonUpdateInput: {
+          type: 'object',
+          properties: {
+            unit_id: { type: 'string' },
+            title: { type: 'string', minLength: 1 },
+            order_index: { type: 'integer' },
+            xp_reward: { type: 'integer' },
+          },
+        },
+        VocabularyInput: {
+          type: 'object',
+          required: ['word', 'meaning'],
+          properties: {
+            word: { type: 'string', minLength: 1, example: 'hello' },
+            meaning: { type: 'string', minLength: 1, example: 'xin chao' },
+            pronunciation: { type: 'string' },
+            example_sentence: { type: 'string' },
+            image_url: { type: 'string' },
+            audio_url: { type: 'string' },
+          },
+        },
+        VocabularyUpdateInput: {
+          type: 'object',
+          properties: {
+            word: { type: 'string', minLength: 1 },
+            meaning: { type: 'string', minLength: 1 },
+            pronunciation: { type: 'string' },
+            example_sentence: { type: 'string' },
+            image_url: { type: 'string' },
+            audio_url: { type: 'string' },
+          },
+        },
+        ExerciseOptionInput: {
+          type: 'object',
+          required: ['option_text'],
+          properties: {
+            option_text: { type: 'string', minLength: 1 },
+            is_correct: { type: 'boolean', default: false },
+          },
+        },
+        ExerciseOptionUpdateInput: {
+          type: 'object',
+          properties: {
+            exercise_id: { type: 'string' },
+            option_text: { type: 'string', minLength: 1 },
+            is_correct: { type: 'boolean' },
+          },
+        },
+        ExerciseInput: {
+          type: 'object',
+          required: ['lesson_id', 'question', 'exercise_type', 'correct_answer'],
+          properties: {
+            lesson_id: { type: 'string', example: '665f00000000000000000000' },
+            question: { type: 'string', minLength: 1 },
+            exercise_type: {
+              type: 'string',
+              enum: ['multiple_choice', 'translate', 'listening', 'fill_blank', 'matching'],
+            },
+            correct_answer: { type: 'string', minLength: 1 },
+            audio_url: { type: 'string' },
+            image_url: { type: 'string' },
+            order_index: { type: 'integer' },
+            options: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/ExerciseOptionInput' },
+            },
+          },
+        },
+        ExerciseUpdateInput: {
+          type: 'object',
+          properties: {
+            lesson_id: { type: 'string' },
+            question: { type: 'string', minLength: 1 },
+            exercise_type: {
+              type: 'string',
+              enum: ['multiple_choice', 'translate', 'listening', 'fill_blank', 'matching'],
+            },
+            correct_answer: { type: 'string', minLength: 1 },
+            audio_url: { type: 'string' },
+            image_url: { type: 'string' },
+            order_index: { type: 'integer' },
+          },
+        },
+        AchievementInput: {
+          type: 'object',
+          required: ['name'],
+          properties: {
+            name: { type: 'string', minLength: 1 },
+            description: { type: 'string' },
+            icon_url: { type: 'string' },
+            required_xp: { type: 'integer' },
+          },
+        },
+        Achievement: {
+          allOf: [
+            { $ref: '#/components/schemas/AchievementInput' },
+            {
+              type: 'object',
+              required: ['_id'],
+              properties: { _id: { type: 'string' } },
+            },
+          ],
+        },
+        Heart: {
+          type: 'object',
+          required: ['_id', 'user_id', 'current_hearts', 'max_hearts'],
+          properties: {
+            _id: { type: 'string' },
+            user_id: { type: 'string' },
+            current_hearts: { type: 'integer', example: 5 },
+            max_hearts: { type: 'integer', example: 5 },
+            last_refill_at: { type: 'string', format: 'date-time' },
+          },
+        },
+        UserProgress: {
+          type: 'object',
+          required: ['_id', 'user_id', 'lesson_id', 'is_completed', 'score', 'earned_xp'],
+          properties: {
+            _id: { type: 'string' },
+            user_id: { type: 'string' },
+            lesson_id: { type: 'string' },
+            is_completed: { type: 'boolean' },
+            score: { type: 'number', example: 80 },
+            earned_xp: { type: 'integer', example: 10 },
+            completed_at: { type: 'string', format: 'date-time' },
+            lesson: {
+              nullable: true,
+              allOf: [{ $ref: '#/components/schemas/Lesson' }],
+            },
+          },
+        },
+        SubmitLessonResult: {
+          type: 'object',
+          required: ['totalQuestions', 'correctAnswers', 'score', 'earnedXp', 'currentHearts', 'unlockedAchievements'],
+          properties: {
+            totalQuestions: { type: 'integer', example: 5 },
+            correctAnswers: { type: 'integer', example: 4 },
+            score: { type: 'number', example: 80 },
+            earnedXp: { type: 'integer', example: 10 },
+            currentHearts: { type: 'integer', example: 4 },
+            unlockedAchievements: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/Achievement' },
+            },
+          },
+        },
+        DeviceToken: {
+          type: 'object',
+          required: ['_id', 'user_id', 'token', 'platform'],
+          properties: {
+            _id: { type: 'string' },
+            user_id: { type: 'string' },
+            token: { type: 'string' },
+            platform: { type: 'string', enum: ['android', 'ios', 'web'] },
+            created_at: { type: 'string', format: 'date-time' },
+          },
+        },
+        NotificationLog: {
+          type: 'object',
+          required: ['_id', 'user_id', 'title', 'body', 'provider', 'success'],
+          properties: {
+            _id: { type: 'string' },
+            user_id: { type: 'string' },
+            title: { type: 'string' },
+            body: { type: 'string' },
+            provider: { type: 'string', enum: ['fcm', 'log'] },
+            success: { type: 'boolean' },
+            created_at: { type: 'string', format: 'date-time' },
           },
         },
         ReorderOptionsRequest: {
@@ -167,6 +401,13 @@ const options: swaggerJSDoc.Options = {
               example: [1, 2, 3, 4, 5],
               description: '0=CN ... 6=Thu7. Rong = moi ngay',
             },
+          },
+        },
+        TestNotificationRequest: {
+          type: 'object',
+          properties: {
+            title: { type: 'string', minLength: 1, default: 'Thong bao thu nghiem' },
+            body: { type: 'string', minLength: 1, default: 'Day la thong bao test tu backend.' },
           },
         },
         SubmitLessonRequest: {
@@ -258,7 +499,7 @@ const options: swaggerJSDoc.Options = {
             required: true,
             content: {
               'application/json': {
-                schema: { $ref: '#/components/schemas/Course' },
+                schema: { $ref: '#/components/schemas/CourseInput' },
               },
             },
           },
@@ -284,7 +525,10 @@ const options: swaggerJSDoc.Options = {
           tags: ['Courses'],
           summary: 'Update course',
           parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string' } }],
-          requestBody: { content: { 'application/json': { schema: { $ref: '#/components/schemas/Course' } } } },
+          requestBody: {
+            required: true,
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/CourseUpdateInput' } } },
+          },
           responses: { 200: { description: 'Updated' } },
         },
         delete: {
@@ -306,7 +550,10 @@ const options: swaggerJSDoc.Options = {
         post: {
           tags: ['Units'],
           summary: 'Create unit',
-          requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/Unit' } } } },
+          requestBody: {
+            required: true,
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/UnitInput' } } },
+          },
           responses: { 201: { description: 'Created' } },
         },
       },
@@ -315,7 +562,10 @@ const options: swaggerJSDoc.Options = {
           tags: ['Units'],
           summary: 'Update unit',
           parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string' } }],
-          requestBody: { content: { 'application/json': { schema: { $ref: '#/components/schemas/Unit' } } } },
+          requestBody: {
+            required: true,
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/UnitUpdateInput' } } },
+          },
           responses: { 200: { description: 'Updated' } },
         },
         delete: {
@@ -337,7 +587,10 @@ const options: swaggerJSDoc.Options = {
         post: {
           tags: ['Lessons'],
           summary: 'Create lesson',
-          requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/Lesson' } } } },
+          requestBody: {
+            required: true,
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/LessonInput' } } },
+          },
           responses: { 201: { description: 'Created' } },
         },
       },
@@ -352,7 +605,10 @@ const options: swaggerJSDoc.Options = {
           tags: ['Lessons'],
           summary: 'Update lesson',
           parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string' } }],
-          requestBody: { content: { 'application/json': { schema: { $ref: '#/components/schemas/Lesson' } } } },
+          requestBody: {
+            required: true,
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/LessonUpdateInput' } } },
+          },
           responses: { 200: { description: 'Updated' } },
         },
         delete: {
@@ -380,7 +636,10 @@ const options: swaggerJSDoc.Options = {
         post: {
           tags: ['Vocabulary'],
           summary: 'Create vocabulary',
-          requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/Vocabulary' } } } },
+          requestBody: {
+            required: true,
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/VocabularyInput' } } },
+          },
           responses: { 201: { description: 'Created' } },
         },
       },
@@ -395,7 +654,10 @@ const options: swaggerJSDoc.Options = {
           tags: ['Vocabulary'],
           summary: 'Update vocabulary',
           parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string' } }],
-          requestBody: { content: { 'application/json': { schema: { $ref: '#/components/schemas/Vocabulary' } } } },
+          requestBody: {
+            required: true,
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/VocabularyUpdateInput' } } },
+          },
           responses: { 200: { description: 'Updated' } },
         },
         delete: {
@@ -471,9 +733,17 @@ const options: swaggerJSDoc.Options = {
       '/api/exercises': {
         post: {
           tags: ['Exercises'],
-          summary: 'Create exercise, optionally with options',
-          requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/Exercise' } } } },
-          responses: { 201: { description: 'Created' } },
+          summary: 'Create exercise, optionally with options (admin only)',
+          security: [{ bearerAuth: [] }],
+          requestBody: {
+            required: true,
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ExerciseInput' } } },
+          },
+          responses: {
+            201: { description: 'Created' },
+            401: { description: 'Unauthorized' },
+            403: { description: 'Admin role required' },
+          },
         },
       },
       '/api/exercises/{id}': {
@@ -485,28 +755,46 @@ const options: swaggerJSDoc.Options = {
         },
         put: {
           tags: ['Exercises'],
-          summary: 'Update exercise',
+          summary: 'Update exercise (admin only)',
+          security: [{ bearerAuth: [] }],
           parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string' } }],
-          requestBody: { content: { 'application/json': { schema: { $ref: '#/components/schemas/Exercise' } } } },
-          responses: { 200: { description: 'Updated' } },
+          requestBody: {
+            required: true,
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ExerciseUpdateInput' } } },
+          },
+          responses: {
+            200: { description: 'Updated' },
+            401: { description: 'Unauthorized' },
+            403: { description: 'Admin role required' },
+          },
         },
         delete: {
           tags: ['Exercises'],
-          summary: 'Delete exercise',
+          summary: 'Delete exercise (admin only)',
+          security: [{ bearerAuth: [] }],
           parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string' } }],
-          responses: { 200: { description: 'Deleted' } },
+          responses: {
+            200: { description: 'Deleted' },
+            401: { description: 'Unauthorized' },
+            403: { description: 'Admin role required' },
+          },
         },
       },
       '/api/exercises/{exerciseId}/options': {
         post: {
           tags: ['Exercises'],
-          summary: 'Create exercise option',
+          summary: 'Create exercise option (admin only)',
+          security: [{ bearerAuth: [] }],
           parameters: [{ in: 'path', name: 'exerciseId', required: true, schema: { type: 'string' } }],
           requestBody: {
             required: true,
-            content: { 'application/json': { schema: { $ref: '#/components/schemas/ExerciseOption' } } },
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ExerciseOptionInput' } } },
           },
-          responses: { 201: { description: 'Created' } },
+          responses: {
+            201: { description: 'Created' },
+            401: { description: 'Unauthorized' },
+            403: { description: 'Admin role required' },
+          },
         },
       },
       '/api/exercises/{exerciseId}/options/reorder': {
@@ -531,16 +819,29 @@ const options: swaggerJSDoc.Options = {
       '/api/exercise-options/{id}': {
         put: {
           tags: ['Exercises'],
-          summary: 'Update exercise option',
+          summary: 'Update exercise option (admin only)',
+          security: [{ bearerAuth: [] }],
           parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string' } }],
-          requestBody: { content: { 'application/json': { schema: { $ref: '#/components/schemas/ExerciseOption' } } } },
-          responses: { 200: { description: 'Updated' } },
+          requestBody: {
+            required: true,
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ExerciseOptionUpdateInput' } } },
+          },
+          responses: {
+            200: { description: 'Updated' },
+            401: { description: 'Unauthorized' },
+            403: { description: 'Admin role required' },
+          },
         },
         delete: {
           tags: ['Exercises'],
-          summary: 'Delete exercise option',
+          summary: 'Delete exercise option (admin only)',
+          security: [{ bearerAuth: [] }],
           parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string' } }],
-          responses: { 200: { description: 'Deleted' } },
+          responses: {
+            200: { description: 'Deleted' },
+            401: { description: 'Unauthorized' },
+            403: { description: 'Admin role required' },
+          },
         },
       },
       '/api/progress/me': {
@@ -581,6 +882,10 @@ const options: swaggerJSDoc.Options = {
         post: {
           tags: ['Achievements'],
           summary: 'Create achievement',
+          requestBody: {
+            required: true,
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/AchievementInput' } } },
+          },
           responses: { 201: { description: 'Created' } },
         },
       },
@@ -706,10 +1011,7 @@ const options: swaggerJSDoc.Options = {
           requestBody: {
             content: {
               'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: { title: { type: 'string' }, body: { type: 'string' } },
-                },
+                schema: { $ref: '#/components/schemas/TestNotificationRequest' },
               },
             },
           },
