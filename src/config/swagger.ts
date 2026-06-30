@@ -121,6 +121,11 @@ const options: swaggerJSDoc.Options = {
               type: 'string',
               enum: ['multiple_choice', 'translate', 'listening', 'fill_blank', 'matching'],
             },
+            level: {
+              type: 'string',
+              enum: ['easy', 'medium', 'hard'],
+              example: 'medium',
+            },
             correct_answer: { type: 'string' },
             audio_url: { type: 'string' },
             image_url: { type: 'string' },
@@ -248,6 +253,12 @@ const options: swaggerJSDoc.Options = {
               type: 'string',
               enum: ['multiple_choice', 'translate', 'listening', 'fill_blank', 'matching'],
             },
+            level: {
+              type: 'string',
+              enum: ['easy', 'medium', 'hard'],
+              default: 'medium',
+              example: 'medium',
+            },
             correct_answer: { type: 'string', minLength: 1 },
             audio_url: { type: 'string' },
             image_url: { type: 'string' },
@@ -266,6 +277,11 @@ const options: swaggerJSDoc.Options = {
             exercise_type: {
               type: 'string',
               enum: ['multiple_choice', 'translate', 'listening', 'fill_blank', 'matching'],
+            },
+            level: {
+              type: 'string',
+              enum: ['easy', 'medium', 'hard'],
+              example: 'hard',
             },
             correct_answer: { type: 'string', minLength: 1 },
             audio_url: { type: 'string' },

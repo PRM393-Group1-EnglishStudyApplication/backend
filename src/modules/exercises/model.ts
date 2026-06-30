@@ -3,10 +3,14 @@ import { Schema, model, type Types } from 'mongoose';
 export const exerciseTypes = ['multiple_choice', 'translate', 'listening', 'fill_blank', 'matching'] as const;
 export type ExerciseType = (typeof exerciseTypes)[number];
 
+export const exerciseLevels = ['easy', 'medium', 'hard'] as const;
+export type ExerciseLevel = (typeof exerciseLevels)[number];
+
 export interface IExercise {
   lesson_id: Types.ObjectId;
   question: string;
   exercise_type: ExerciseType;
+  level: ExerciseLevel;
   correct_answer: string;
   audio_url?: string;
   image_url?: string;
@@ -25,6 +29,7 @@ const exerciseSchema = new Schema<IExercise>(
     lesson_id: { type: Schema.Types.ObjectId, ref: 'Lesson', required: true },
     question: { type: String, required: true, trim: true },
     exercise_type: { type: String, enum: exerciseTypes, required: true },
+    level: { type: String, enum: exerciseLevels, required: true, default: 'medium' },
     correct_answer: { type: String, required: true },
     audio_url: { type: String },
     image_url: { type: String },

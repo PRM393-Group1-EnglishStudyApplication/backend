@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { sendSuccess } from '../../utils/ApiResponse.js';
 import { toObjectId } from '../../utils/mongo.js';
-import { exerciseTypes } from './model.js';
+import { exerciseLevels, exerciseTypes } from './model.js';
 import {
   createExercise,
   createExerciseOption,
@@ -25,6 +25,7 @@ const exerciseSchema = z.object({
   lesson_id: z.string().transform((id) => toObjectId(id, 'lesson_id')),
   question: z.string().trim().min(1),
   exercise_type: z.enum(exerciseTypes),
+  level: z.enum(exerciseLevels).default('medium'),
   correct_answer: z.string().trim().min(1),
   audio_url: z.string().optional(),
   image_url: z.string().optional(),
